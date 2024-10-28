@@ -1,15 +1,15 @@
 import express, { Express, Request, Response } from 'express';
+const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/database');
+dotenv.config();
+connectDB();
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5001;
 
-// Middleware
 app.use(express.json());
-
-// Basic route
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Express + TypeScript!');
-});
+app.use(cors)
 
 // Start server
 app.listen(port, () => {
