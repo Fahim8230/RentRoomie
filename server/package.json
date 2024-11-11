@@ -33,6 +33,5 @@
     "dev": "nodemon index.ts",
     "build": "tsc",
     "test": "jest --coverage"
-
   }
 }
