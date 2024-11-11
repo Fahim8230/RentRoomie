@@ -2,6 +2,7 @@
 import express from 'express';
 import {
     createUser,
+    loginUser,
     deleteUser,
     getUserById,
     getUsers,
@@ -12,6 +13,7 @@ const router = express.Router();
 
 // CRUD Routes for User
 router.post('/', createUser); // Create user
+router.post('/login', loginUser);
 router.get('/', getUsers); // Get all users
 router.get('/:id', getUserById); // Get a single user by ID
 router.put('/:id', updateUser); // Update a user by ID
