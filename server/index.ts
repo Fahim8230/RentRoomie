@@ -1,16 +1,13 @@
+import express, {Express, Request, Response} from 'express';
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { Express } from 'express';
-import { connectDB } from "./config/database";
+import {connectDB} from "./config/database";
 import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 5001;
-
-// Connect to the database
-connectDB();
 
 // Middleware
 app.use(express.json());
@@ -24,7 +21,8 @@ app.get('/', (req, res) => {
   res.send('Welcome to RentRoomie API');
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+connectDB().then(() => {
+  app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+  });
 });
