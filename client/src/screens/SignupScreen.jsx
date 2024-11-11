@@ -7,7 +7,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-
+//Signup Screen for RentRoomie
 const SignupScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
