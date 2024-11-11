@@ -2,10 +2,10 @@
 import express from 'express';
 import {
     createUser,
-    loginUser,
     deleteUser,
     getUserById,
     getUsers,
+    loginUser,
     updateUser,
 } from '../controllers/userController';
 
