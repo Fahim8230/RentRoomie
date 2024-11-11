@@ -4,6 +4,7 @@ import {colors} from "../utils/colors";
 import { fonts } from '../utils/fonts';
 import { useNavigation } from '@react-navigation/native';
 
+// Home screen for RentRoomie
 function HomeScreen() {
   const navigation = useNavigation();
   const handleLogin = () => {
