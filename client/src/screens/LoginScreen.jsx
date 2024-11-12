@@ -5,6 +5,7 @@ import { fonts } from '../utils/fonts';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 
+//Login Screen for RentRoomie
 const LoginScreen = () => {
   return (
     <>
