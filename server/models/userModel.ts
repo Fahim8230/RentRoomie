@@ -1,6 +1,7 @@
 // models/userModel.ts
 import mongoose, { Document } from 'mongoose';
 
+// Existing Interfaces
 export interface IBudget {
     low: number;
     high: number;
@@ -11,6 +12,24 @@ export interface IAdditionalInfo {
     // You can add more fields here as needed
 }
 
+// New Interfaces for Preferences
+export interface IAgePreference {
+    minAge: number;
+    maxAge: number;
+}
+
+export interface IBudgetPreference {
+    low: number;
+    high: number;
+}
+
+export interface IPreference {
+    agePreference?: IAgePreference;
+    genderPreference?: string[];
+    budgetPreference?: IBudgetPreference;
+}
+
+// Updated IUser Interface to include preference
 export interface IUser extends Document {
     firstName: string;
     lastName: string;
@@ -18,9 +37,11 @@ export interface IUser extends Document {
     password: string;
     dateOfBirth: Date;
     gender: string;
-    additionalInfo?: IAdditionalInfo; // Make it optional if not required during registration
+    additionalInfo?: IAdditionalInfo; // Optional
+    preference?: IPreference; // New preference field
 }
 
+// Existing Schemas
 const budgetSchema = new mongoose.Schema({
     low: {
         type: Number,
@@ -42,43 +63,102 @@ const additionalInfoSchema = new mongoose.Schema({
     // Add more nested fields here if needed
 }, { _id: false });
 
-const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true,
-        trim: true
+// New Schemas for Preferences
+const agePreferenceSchema = new mongoose.Schema(
+    {
+        minAge: {
+            type: Number,
+            required: true,
+            min: 18,
+        },
+        maxAge: {
+            type: Number,
+            required: true,
+            min: 18,
+        },
     },
-    lastName: {
-        type: String,
-        required: true,
-        trim: true
+    { _id: false }
+);
+
+const budgetPreferenceSchema = new mongoose.Schema(
+    {
+        low: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        high: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
+    { _id: false }
+);
+
+const preferenceSchema = new mongoose.Schema(
+    {
+        agePreference: {
+            type: agePreferenceSchema,
+            required: false,
+        },
+        genderPreference: {
+            type: [String], // Array of acceptable genders
+            required: false,
+        },
+        budgetPreference: {
+            type: budgetPreferenceSchema,
+            required: false,
+        },
     },
-    password: {
-        type: String,
-        required: true,
+    { _id: false }
+);
+
+// Updated User Schema to include preference
+const userSchema = new mongoose.Schema(
+    {
+        firstName: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        lastName: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        dateOfBirth: {
+            type: Date,
+            required: true,
+        },
+        gender: {
+            type: String,
+            required: true,
+        },
+        additionalInfo: {
+            type: additionalInfoSchema,
+            required: false // Optional
+        },
+        preference: {
+            type: preferenceSchema,
+            required: false, // Optional
+        },
     },
-    dateOfBirth: {
-        type: Date,
-        required: true,
-    },
-    gender: {
-        type: String,
-        required: true,
-    },
-    additionalInfo: {
-        type: additionalInfoSchema,
-        required: false // Set to true if you want to make it mandatory
-    },
-}, {
-    timestamps: true
-});
+    {
+        timestamps: true
+    }
+);
 
 const User = mongoose.model<IUser>('User', userSchema);
 export default User;
