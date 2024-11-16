@@ -1,4 +1,4 @@
-name: CI-CD Workflow
+name: CI-CD Workflow for frontend
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   frontend:
-    name: Frontend CI
+    name: Frontend CI-CD
     runs-on: ubuntu-latest
 
     defaults:
