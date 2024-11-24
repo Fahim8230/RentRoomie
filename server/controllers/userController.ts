@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/userModel';
 
+// Existing Controller Functions...
+
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -122,6 +124,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
+// Login a user
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
@@ -146,8 +149,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Create JWT payload
+        // Create JWT payload with user id
         const payload = {
+            id: user._id, // Include user ID
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -156,11 +160,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         };
 
         // Generate JWT token with a 24-hour expiration
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h' });
 
         // Send token in response
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
+        console.error('Error in loginUser:', error);
         res.status(500).json({ error: 'Login failed' });
     }
 };
@@ -201,5 +206,103 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
         res.status(200).json({message: 'User deleted successfully'});
     } catch (error: any) {
         res.status(500).json({message: error.message});
+    }
+};
+
+// New Controller Functions for Preferences
+
+// Update roommate preferences
+export const updatePreferences = async (
+    req: Request & { user?: any }, // Extend Request to include user
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        const { agePreference, genderPreference, budgetPreference } = req.body;
+
+        // Validation
+        const updateData: any = {};
+
+        if (agePreference) {
+            const { minAge, maxAge } = agePreference;
+            if (
+                typeof minAge !== 'number' ||
+                typeof maxAge !== 'number' ||
+                minAge < 18 ||
+                maxAge < 18 ||
+                minAge > maxAge
+            ) {
+                res.status(400).json({ error: 'Invalid agePreference values' });
+                return;
+            }
+            updateData['preference.agePreference'] = { minAge, maxAge };
+        }
+
+        if (genderPreference) {
+            if (
+                !Array.isArray(genderPreference) ||
+                genderPreference.some((g) => typeof g !== 'string')
+            ) {
+                res.status(400).json({ error: 'Invalid genderPreference format' });
+                return;
+            }
+            updateData['preference.genderPreference'] = genderPreference;
+        }
+
+        if (budgetPreference) {
+            const { low, high } = budgetPreference;
+            if (
+                typeof low !== 'number' ||
+                typeof high !== 'number' ||
+                low < 0 ||
+                high < 0 ||
+                low > high
+            ) {
+                res.status(400).json({ error: 'Invalid budgetPreference values' });
+                return;
+            }
+            updateData['preference.budgetPreference'] = { low, high };
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true }
+        );
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res
+            .status(200)
+            .json({ message: 'Preferences updated successfully', preferences: user.preference });
+    } catch (error: any) {
+        console.error('Error in updatePreferences:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get roommate preferences
+export const getPreferences = async (
+    req: Request & { user?: any }, // Extend Request to include user
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId).select('preference');
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res.status(200).json({ preferences: user.preference });
+    } catch (error: any) {
+        console.error('Error in getPreferences:', error);
+        res.status(500).json({ message: error.message });
     }
 };
