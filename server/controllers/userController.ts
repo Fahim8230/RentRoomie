@@ -170,6 +170,38 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+
+// Get detailed user profile
+export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { userId } = req.params; // Extract the user ID from the route parameters
+
+        // Find the user by ID and include all relevant fields
+        const user = await User.findById(userId).select(
+            'firstName lastName email dateOfBirth gender preference additionalInfo'
+        );
+
+        // If user is not found, return a 404 error
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Respond with the user details
+        res.status(200).json({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            dateOfBirth: user.dateOfBirth,
+            gender: user.gender,
+            preference: user.preference,
+            additionalInfo: user.additionalInfo,
+        });
+    } catch (error: any) {
+        console.error('Error in getUserProfile:', error);
+        res.status(500).json({ message: 'Failed to retrieve user profile' });
+    }
+};
+
 // Get all users
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
