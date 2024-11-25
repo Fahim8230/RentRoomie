@@ -6,9 +6,15 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useNavigation } from '@react-navigation/native';
 
-//Signup Screen for RentRoomie
+
 const SignupScreen = () => {
+
+  const navigation = useNavigation();
+  const handleProfileCreation = () => {
+    navigation.navigate("PROFILECREATION");
+  };
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -86,7 +92,7 @@ const SignupScreen = () => {
           onChange={onChange}
         />)}
       </View>
-      <TouchableOpacity style={styles.loginButtonWrapper}>
+      <TouchableOpacity style={styles.loginButtonWrapper} onPress={handleProfileCreation}>
         <Text style={styles.loginText}>Sign up</Text>
       </TouchableOpacity>
     </View>

@@ -4,9 +4,16 @@ import {colors} from "../utils/colors";
 import { fonts } from '../utils/fonts';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
+import { useNavigation } from '@react-navigation/native';
 
 //Login Screen for RentRoomie
 const LoginScreen = () => {
+
+  const navigation = useNavigation();
+  const handleContainer = () => {
+    navigation.navigate("CONTAINER");
+  }
+
   return (
     <>
     <View style={styles.textContainer}>
@@ -30,7 +37,7 @@ const LoginScreen = () => {
         placeholderTextColor={colors.secondary}
         secureTextEntry={true} />
       </View>
-      <TouchableOpacity style={styles.loginButtonWrapper}>
+      <TouchableOpacity style={styles.loginButtonWrapper} onPress={handleContainer}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
       <View style={styles.footerContainer}>
