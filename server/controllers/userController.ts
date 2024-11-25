@@ -1,7 +1,7 @@
 // controllers/userController.ts
-import bcrypt from "bcryptjs";
+import * as bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/userModel';
 
 // Existing Controller Functions...
