@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
 import React from 'react';
+import { useNavigation } from '@react-navigation/native'; // Import navigation hook
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
 
-
 const ProfileCreationScreen = () => {
+  const navigation = useNavigation(); // Initialize navigation
+
   return (
     <View style={styles.container}>
       <Text style={styles.headingText}>Profile</Text>
@@ -35,6 +37,11 @@ const ProfileCreationScreen = () => {
             multiline
           />
         </View>
+        <Button
+          title="Done"
+          onPress={() => navigation.navigate('HomeScreen')} // Navigate to HomeScreen
+          color={colors.primary}
+        />
       </View>
     </View>
   );
