@@ -338,3 +338,51 @@ export const getPreferences = async (
         res.status(500).json({ message: error.message });
     }
 };
+
+export const changePassword = async (
+    req: Request & { user?: { id: string } }, // User is included in the request by authMiddleware
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user?.id; // User ID from middleware
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate input
+        if (!currentPassword || !newPassword) {
+            res.status(400).json({ error: 'Both currentPassword and newPassword are required' });
+            return;
+        }
+
+        // Validate newPassword strength (example: at least 8 characters)
+        if (newPassword.length < 8) {
+            res.status(400).json({ error: 'New password must be at least 8 characters long' });
+            return;
+        }
+
+        // Find the user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Verify the current password matches
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordValid) {
+            res.status(401).json({ error: 'Current password is incorrect' });
+            return;
+        }
+
+        // Hash the new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error: any) {
+        console.error('Error in changePassword:', error);
+        res.status(500).json({ message: error.message });
+    }
+};

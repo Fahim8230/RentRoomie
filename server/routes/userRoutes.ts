@@ -11,6 +11,7 @@ import {
     getUserProfile,
     updatePreferences,
     updateUser,
+    changePassword,
 } from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
 
@@ -20,6 +21,7 @@ const router = express.Router();
 router.post('/', createUser); // Create user
 router.post('/login', loginUser);
 router.get('/', authMiddleware, getUsers); // Get all users
+router.post('/change-password', authMiddleware, changePassword);
 
 // New Routes for Preferences - Place these before dynamic routes
 router.put('/preferences', authMiddleware, updatePreferences); // Update preferences
