@@ -10,6 +10,7 @@ import {
     loginUser,
     updatePreferences,
     updateUser,
+    changePassword,
 } from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
 
@@ -28,5 +29,6 @@ router.get('/preferences', authMiddleware, getPreferences);   // Get preferences
 router.get('/:id', getUserById); // Get a single user by ID
 router.put('/:id', updateUser); // Update a user by ID
 router.delete('/:id', deleteUser); // Delete a user by ID
+router.post('/change-password', authMiddleware, changePassword);
 
 export default router;
