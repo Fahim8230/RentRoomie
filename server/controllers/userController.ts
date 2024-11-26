@@ -172,7 +172,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
 
 // Get detailed user profile
-export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+export async function getUserProfile(req: Request, res: Response): Promise<void> {
     try {
         const { userId } = req.params; // Extract the user ID from the route parameters
 
@@ -200,7 +200,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
         console.error('Error in getUserProfile:', error);
         res.status(500).json({ message: 'Failed to retrieve user profile' });
     }
-};
+}
 
 // Get all users
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
