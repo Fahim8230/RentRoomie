@@ -3,7 +3,6 @@ import React from 'react';
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
 
-
 const ProfileCreationScreen = () => {
   return (
     <View style={styles.container}>
