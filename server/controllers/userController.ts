@@ -2,9 +2,9 @@
 import * as bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
+import Like from '../models/likeModel';
+import Match from '../models/matchModel';
 import User, { IUser } from '../models/userModel';
-
-// Existing Controller Functions...
 
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -338,3 +338,141 @@ export const getPreferences = async (
         res.status(500).json({ message: error.message });
     }
 };
+
+
+// Like a user
+export const likeUser = async (
+    req: Request & { user?: any },
+    res: Response
+  ): Promise<void> => {
+    try {
+      const likerId = req.user.id;
+      const { likedUserId } = req.body;
+  
+      // Validate likedUserId
+      if (!likedUserId) {
+        res.status(400).json({ error: 'likedUserId is required' });
+        return;
+      }
+  
+      // Prevent liking oneself
+      if (likerId === likedUserId) {
+        res.status(400).json({ error: 'You cannot like yourself' });
+        return;
+      }
+  
+      // Check if likedUserId exists
+      const likedUser = await User.findById(likedUserId);
+      if (!likedUser) {
+        res.status(404).json({ error: 'User to like not found' });
+        return;
+      }
+  
+      // Check if the like already exists
+      const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
+      if (existingLike) {
+        res.status(400).json({ error: 'You have already liked this user' });
+        return;
+      }
+  
+      // Save the new like
+      const newLike = new Like({ likerId, likedId: likedUserId });
+      await newLike.save();
+  
+      // Check for mutual like
+      const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
+      if (reciprocalLike) {
+        // Check if a match already exists
+        const existingMatch = await Match.findOne({
+          userIds: { $all: [likerId, likedUserId] },
+        });
+  
+        if (!existingMatch) {
+          // Create a new match
+          const newMatch = new Match({ userIds: [likerId, likedUserId] });
+          await newMatch.save();
+        }
+  
+        // Retrieve matched user data to return
+        const matchedUser = await User.findById(likedUserId).select(
+          'firstName lastName email'
+        );
+  
+        res.status(200).json({
+          message: "It's a match!",
+          matchedUser,
+        });
+      } else {
+        res.status(200).json({ message: 'User liked successfully' });
+      }
+    } catch (error: any) {
+      console.error('Error in likeUser:', error);
+      res.status(500).json({ error: 'Failed to like user' });
+    }
+  };
+
+
+// Get users who have liked the authenticated user
+export const getUsersWhoLikedMe = async (
+    req: Request & { user?: any },
+    res: Response
+  ): Promise<void> => {
+    try {
+      const userId = req.user.id;
+  
+      // Find all likes where the likedId is the authenticated user
+      const likes = await Like.find({ likedId: userId }).populate('likerId', 'firstName lastName email');
+  
+      // Extract the users who liked the authenticated user
+      const usersWhoLikedMe = likes.map(like => like.likerId);
+  
+      res.status(200).json(usersWhoLikedMe);
+    } catch (error: any) {
+      console.error('Error in getUsersWhoLikedMe:', error);
+      res.status(500).json({ error: 'Failed to retrieve users who liked you' });
+    }
+  };
+  
+  // Get users the authenticated user has liked
+  export const getUsersILiked = async (
+    req: Request & { user?: any },
+    res: Response
+  ): Promise<void> => {
+    try {
+      const userId = req.user.id;
+  
+      // Find all likes where the likerId is the authenticated user
+      const likes = await Like.find({ likerId: userId }).populate('likedId', 'firstName lastName email');
+  
+      // Extract the users the authenticated user has liked
+      const usersILiked = likes.map(like => like.likedId);
+  
+      res.status(200).json(usersILiked);
+    } catch (error: any) {
+      console.error('Error in getUsersILiked:', error);
+      res.status(500).json({ error: 'Failed to retrieve users you have liked' });
+    }
+  };
+  
+  // Get matches for the authenticated user
+  export const getMyMatches = async (
+    req: Request & { user?: any },
+    res: Response
+  ): Promise<void> => {
+    try {
+      const userId = req.user.id;
+  
+      // Find all matches where the userIds array contains the authenticated user
+      const matches = await Match.find({ userIds: userId }).populate('userIds', 'firstName lastName email');
+  
+      // Extract matched users (excluding the authenticated user)
+      const matchedUsers = matches.map(match => {
+        return match.userIds.find((user: any) => user._id.toString() !== userId);
+      });
+  
+      res.status(200).json(matchedUsers);
+    } catch (error: any) {
+      console.error('Error in getMyMatches:', error);
+      res.status(500).json({ error: 'Failed to retrieve your matches' });
+    }
+  };
