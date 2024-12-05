@@ -15,7 +15,8 @@ import {
     loginUser,
     updatePreferences,
     updateUser,
-    getChatHistory
+    getChatHistory,
+    sendMessage
 } from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
 
@@ -30,6 +31,8 @@ router.get('/', authMiddleware, getUsers); // Get all users
 router.put('/preferences', authMiddleware, updatePreferences); // Update preferences
 router.get('/preferences', authMiddleware, getPreferences);   // Get preferences
 
+router.get('/matches', authMiddleware, getMyMatches);             // Your matches
+
 // Dynamic Routes for User by ID - Place these after specific routes
 router.get('/:id', authMiddleware, getUserById); // Get a single user by ID
 router.put('/:id', authMiddleware, updateUser); // Update a user by ID
@@ -40,7 +43,8 @@ router.get('/getUserProfile/:userId', authMiddleware, getUserProfile);
 router.post('/like', authMiddleware, likeUser);
 router.get('/likes/received', authMiddleware, getUsersWhoLikedMe); // Users who liked you
 router.get('/likes/sent', authMiddleware, getUsersILiked);        // Users you have liked
-router.get('/matches', authMiddleware, getMyMatches);             // Your matches
 router.get('/:matchedUserId', authMiddleware, getChatHistory);
+
+router.post('/send', authMiddleware, sendMessage);
 
 export default router;

@@ -341,76 +341,160 @@ export const getPreferences = async (
 };
 
 
-// Like a user
+// // Like a user
+// export const likeUser = async (
+//     req: Request & { user?: any },
+//     res: Response
+//   ): Promise<void> => {
+//     try {
+//       const likerId = req.user.id;
+//       const { likedUserId } = req.body;
+  
+//       // Validate likedUserId
+//       if (!likedUserId) {
+//         res.status(400).json({ error: 'likedUserId is required' });
+//         return;
+//       }
+  
+//       // Prevent liking oneself
+//       if (likerId === likedUserId) {
+//         res.status(400).json({ error: 'You cannot like yourself' });
+//         return;
+//       }
+  
+//       // Check if likedUserId exists
+//       const likedUser = await User.findById(likedUserId);
+//       if (!likedUser) {
+//         res.status(404).json({ error: 'User to like not found' });
+//         return;
+//       }
+  
+//       // Check if the like already exists
+//       const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
+//       if (existingLike) {
+//         res.status(400).json({ error: 'You have already liked this user' });
+//         return;
+//       }
+  
+//       // Save the new like
+//       const newLike = new Like({ likerId, likedId: likedUserId });
+//       await newLike.save();
+  
+//       // Check for mutual like
+//       const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
+//       if (reciprocalLike) {
+//         // Check if a match already exists
+//         const existingMatch = await Match.findOne({
+//           userIds: { $all: [likerId, likedUserId] },
+//         });
+  
+//         if (!existingMatch) {
+//           // Create a new match
+//           const newMatch = new Match({ userIds: [likerId, likedUserId] });
+//           await newMatch.save();
+//         }
+  
+//         // Retrieve matched user data to return
+//         const matchedUser = await User.findById(likedUserId).select(
+//           'firstName lastName email'
+//         );
+  
+//         res.status(200).json({
+//           message: "It's a match!",
+//           matchedUser,
+//         });
+//       } else {
+//         res.status(200).json({ message: 'User liked successfully' });
+//       }
+//     } catch (error: any) {
+//       console.error('Error in likeUser:', error);
+//       res.status(500).json({ error: 'Failed to like user' });
+//     }
+//   };
+
 export const likeUser = async (
     req: Request & { user?: any },
     res: Response
-  ): Promise<void> => {
+): Promise<void> => {
     try {
-      const likerId = req.user.id;
-      const { likedUserId } = req.body;
-  
-      // Validate likedUserId
-      if (!likedUserId) {
-        res.status(400).json({ error: 'likedUserId is required' });
-        return;
-      }
-  
-      // Prevent liking oneself
-      if (likerId === likedUserId) {
-        res.status(400).json({ error: 'You cannot like yourself' });
-        return;
-      }
-  
-      // Check if likedUserId exists
-      const likedUser = await User.findById(likedUserId);
-      if (!likedUser) {
-        res.status(404).json({ error: 'User to like not found' });
-        return;
-      }
-  
-      // Check if the like already exists
-      const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
-      if (existingLike) {
-        res.status(400).json({ error: 'You have already liked this user' });
-        return;
-      }
-  
-      // Save the new like
-      const newLike = new Like({ likerId, likedId: likedUserId });
-      await newLike.save();
-  
-      // Check for mutual like
-      const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
-      if (reciprocalLike) {
-        // Check if a match already exists
-        const existingMatch = await Match.findOne({
-          userIds: { $all: [likerId, likedUserId] },
-        });
-  
-        if (!existingMatch) {
-          // Create a new match
-          const newMatch = new Match({ userIds: [likerId, likedUserId] });
-          await newMatch.save();
+        const likerId = req.user.id;
+        const { likedUserId } = req.body;
+
+        // Validate likedUserId
+        if (!likedUserId) {
+            res.status(400).json({ error: 'likedUserId is required' });
+            return;
         }
-  
-        // Retrieve matched user data to return
-        const matchedUser = await User.findById(likedUserId).select(
-          'firstName lastName email'
-        );
-  
-        res.status(200).json({
-          message: "It's a match!",
-          matchedUser,
-        });
-      } else {
-        res.status(200).json({ message: 'User liked successfully' });
-      }
+
+        // Prevent liking oneself
+        if (likerId === likedUserId) {
+            res.status(400).json({ error: 'You cannot like yourself' });
+            return;
+        }
+
+        // Check if likedUserId exists
+        const likedUser = await User.findById(likedUserId);
+        if (!likedUser) {
+            res.status(404).json({ error: 'User to like not found' });
+            return;
+        }
+
+        // Check if the like already exists
+        const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
+        if (existingLike) {
+            res.status(400).json({ error: 'You have already liked this user' });
+            return;
+        }
+
+        // Save the new like
+        const newLike = new Like({ likerId, likedId: likedUserId });
+        await newLike.save();
+
+        // Check for mutual like
+        const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
+        if (reciprocalLike) {
+            // Check if a match already exists
+            const existingMatch = await Match.findOne({
+                userIds: { $all: [likerId, likedUserId] },
+            });
+
+            if (!existingMatch) {
+                // Create a new match
+                const newMatch = new Match({ userIds: [likerId, likedUserId] });
+                await newMatch.save();
+            }
+
+            // Check if a chat already exists between these users
+            const existingChat = await Chat.findOne({
+                participants: { $all: [likerId, likedUserId] },
+            });
+
+            if (!existingChat) {
+                // Create a new chat document
+                const newChat = new Chat({
+                    participants: [likerId, likedUserId],
+                    messages: [], // Initialize with no messages
+                });
+                await newChat.save();
+            }
+
+            // Retrieve matched user data to return
+            const matchedUser = await User.findById(likedUserId).select(
+                'firstName lastName email'
+            );
+
+            res.status(200).json({
+                message: "It's a match!",
+                matchedUser,
+            });
+        } else {
+            res.status(200).json({ message: 'User liked successfully' });
+        }
     } catch (error: any) {
-      console.error('Error in likeUser:', error);
-      res.status(500).json({ error: 'Failed to like user' });
+        console.error('Error in likeUser:', error);
+        res.status(500).json({ error: 'Failed to like user' });
     }
-  };
+};
 
 
 // Get users who have liked the authenticated user
@@ -494,9 +578,16 @@ export const getUsersWhoLikedMe = async (
         }
 
         // Find the chat between the authenticated user and the matched user
+        // const chat = await Chat.findOne({
+        //     participants: { $all: [userId, matchedUserId] }, // Both participants must be in the chat
+        // }).populate('messages.sender', 'firstName lastName'); // Optionally populate sender info
+
         const chat = await Chat.findOne({
-            participants: { $all: [userId, matchedUserId] }, // Both participants must be in the chat
-        }).populate('messages.sender', 'firstName lastName'); // Optionally populate sender info
+            participants: { $all: [userId, matchedUserId] },
+        })
+            .populate('messages.sender', 'firstName lastName')
+            .exec(); // Ensure fresh data
+        
 
         if (!chat) {
             res.status(404).json({ error: 'Chat history not found' });
@@ -514,3 +605,37 @@ export const getUsersWhoLikedMe = async (
     }
 };
 
+
+export const sendMessage = async (
+    req: Request & { user?: IUser },
+    res: Response
+): Promise<void> => {
+    try {
+        const { chatId, content } = req.body; // Chat ID and message content
+        const userId = req.user?.id; // Authenticated user ID from middleware
+
+        // Validate input
+        if (!chatId || !content || !userId) {
+            res.status(400).json({ error: 'Chat ID, content, and sender ID are required' });
+            return;
+        }
+
+        // Find the chat by ID
+        const chat = await Chat.findById(chatId);
+
+        if (!chat) {
+            res.status(404).json({ error: 'Chat not found' });
+            return;
+        }
+
+        // Add the new message to the chat
+        const newMessage = { sender: userId, content, createdAt: new Date() };
+        chat.messages.push(newMessage);
+        await chat.save();
+
+        res.status(201).json({ message: 'Message sent successfully', newMessage });
+    } catch (error: any) {
+        console.error('Error in sendMessage:', error.message);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+};
