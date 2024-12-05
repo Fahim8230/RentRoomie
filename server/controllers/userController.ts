@@ -562,48 +562,85 @@ export const getUsersWhoLikedMe = async (
     }
   };
 
-  export const getChatHistory = async (
-    req: Request & { user?: IUser },
+export const getChatHistory = async (
+    req: Request & { user?: any },
     res: Response
 ): Promise<void> => {
     try {
-        // Get authenticated user ID and matched user ID
-        const userId = req.user?.id;
-        const { matchedUserId } = req.params;
+        // Log request details
+        console.log('Request received');
+        console.log('Authenticated user ID:', req.user?.id);
+        console.log('Matched user ID:', req.params.matchedUserId);
 
-        // Validate matchedUserId
-        if (!matchedUserId) {
-            res.status(400).json({ error: 'Matched user ID is required' });
+        const userId = req.user?.id; // Authenticated user ID
+        const { matchedUserId } = req.params; // Matched user ID from the route
+
+        if (!userId || !matchedUserId) {
+            res.status(400).json({ error: 'Both authenticated user ID and matched user ID are required' });
             return;
         }
 
-        // Find the chat between the authenticated user and the matched user
-        // const chat = await Chat.findOne({
-        //     participants: { $all: [userId, matchedUserId] }, // Both participants must be in the chat
-        // }).populate('messages.sender', 'firstName lastName'); // Optionally populate sender info
+        // Step 1: Check for a match between users
+        console.log('Checking for match between users...');
+        const match = await Match.findOne({
+            userIds: { $all: [userId, matchedUserId] },
+        });
 
+        if (!match) {
+            console.log('No match found');
+            res.status(404).json({ error: 'No match found between these users' });
+            return;
+        }
+
+        console.log('Match found:', match);
+
+        // Step 2: Retrieve the chat document
+        console.log('Retrieving chat...');
         const chat = await Chat.findOne({
             participants: { $all: [userId, matchedUserId] },
         })
-            .populate('messages.sender', 'firstName lastName')
-            .exec(); // Ensure fresh data
-        
+            .populate({
+                path: 'messages.sender',
+                select: 'firstName lastName', // Only include necessary fields
+            })
+            .exec();
 
         if (!chat) {
-            res.status(404).json({ error: 'Chat history not found' });
+            console.log('No chat found');
+            res.status(404).json({ error: 'No chat history found for these participants' });
             return;
         }
 
-        // Return the chat messages
+        console.log('Chat found:', chat);
+
+        // Step 3: Format messages
+        const formattedMessages = chat.messages.map((message) => {
+            const sender = message.sender as any; // Type casting to handle populated sender
+            console.log('Processing message:', message);
+            return {
+                sender: {
+                    firstName: sender?.firstName || 'Unknown',
+                    lastName: sender?.lastName || 'Unknown',
+                },
+                content: message.content,
+                createdAt: message.createdAt,
+            };
+        });
+
+        console.log('Formatted messages:', formattedMessages);
+
+        // Step 4: Send response
         res.status(200).json({
             participants: chat.participants,
-            messages: chat.messages,
+            messages: formattedMessages,
         });
     } catch (error: any) {
-        console.error('Error in getChatHistory:', error);
-        res.status(500).json({ error: 'Failed to fetch chat history' });
+        console.error('Error in getChatHistory:', error.message);
+        res.status(500).json({ error: 'An error occurred while retrieving chat history' });
     }
 };
+
+
 
 
 export const sendMessage = async (
