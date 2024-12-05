@@ -15,6 +15,7 @@ import {
     loginUser,
     updatePreferences,
     updateUser,
+    getChatHistory
 } from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
 
@@ -40,5 +41,6 @@ router.post('/like', authMiddleware, likeUser);
 router.get('/likes/received', authMiddleware, getUsersWhoLikedMe); // Users who liked you
 router.get('/likes/sent', authMiddleware, getUsersILiked);        // Users you have liked
 router.get('/matches', authMiddleware, getMyMatches);             // Your matches
+router.get('/:matchedUserId', authMiddleware, getChatHistory);
 
 export default router;

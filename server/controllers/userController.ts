@@ -5,6 +5,7 @@ import * as jwt from 'jsonwebtoken';
 import Like from '../models/likeModel';
 import Match from '../models/matchModel';
 import User, { IUser } from '../models/userModel';
+import Chat from '../models/chatModel';
 
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -476,3 +477,40 @@ export const getUsersWhoLikedMe = async (
       res.status(500).json({ error: 'Failed to retrieve your matches' });
     }
   };
+
+  export const getChatHistory = async (
+    req: Request & { user?: IUser },
+    res: Response
+): Promise<void> => {
+    try {
+        // Get authenticated user ID and matched user ID
+        const userId = req.user?.id;
+        const { matchedUserId } = req.params;
+
+        // Validate matchedUserId
+        if (!matchedUserId) {
+            res.status(400).json({ error: 'Matched user ID is required' });
+            return;
+        }
+
+        // Find the chat between the authenticated user and the matched user
+        const chat = await Chat.findOne({
+            participants: { $all: [userId, matchedUserId] }, // Both participants must be in the chat
+        }).populate('messages.sender', 'firstName lastName'); // Optionally populate sender info
+
+        if (!chat) {
+            res.status(404).json({ error: 'Chat history not found' });
+            return;
+        }
+
+        // Return the chat messages
+        res.status(200).json({
+            participants: chat.participants,
+            messages: chat.messages,
+        });
+    } catch (error: any) {
+        console.error('Error in getChatHistory:', error);
+        res.status(500).json({ error: 'Failed to fetch chat history' });
+    }
+};
+
