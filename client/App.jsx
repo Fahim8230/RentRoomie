@@ -11,6 +11,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import DiscoverScreen from './src/screens/DiscoverScreen';
 import MainContainer from './src/screens/MainContainer';
 import ChatScreen from './src/screens/ChatScreen';
+import DirectMessageScreen from './src/screens/DirectMessageScreen';
 
 
 
@@ -27,6 +28,7 @@ function App() {
         <Stack.Screen name={"DISCOVER"} component={DiscoverScreen}/>
         <Stack.Screen name={"LIKE"} component={LikeScreen}/>
         <Stack.Screen name={"CHAT"} component={ChatScreen}/>
+        <Stack.Screen name={"DM"} component={DirectMessageScreen}/>
         <Stack.Screen name={"PROFILE"} component={ProfileScreen}/>
         <Stack.Screen name={"CONTAINER"} component={MainContainer}/>
       </Stack.Navigator>
