@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, PanResponder } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { colors } from '../utils/colors';
@@ -57,6 +57,13 @@ const DiscoverScreen = () => {
     },
   ];
 
+  const [index, setIndex] = useState(0);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  const onSwiped = () => {
+    setIndex((prevIndex) => (prevIndex + 1) % exampleCards.length);
+  };
+
   const Card = ({ card }) => (
     <View style={styles.card}>
       <Image source={{ uri: card.image }} style={styles.cardImage} />
@@ -64,7 +71,13 @@ const DiscoverScreen = () => {
   );
 
   const CardDetails = ({ card }) => (
-    <ScrollView style={styles.cardDetails} contentContainerStyle={{ paddingBottom: 20 }}>
+    <ScrollView
+      style={styles.cardDetails}
+      contentContainerStyle={{ paddingBottom: 20 }}
+      scrollEnabled={scrollEnabled}
+      onTouchStart={() => setScrollEnabled(true)}
+      onTouchEnd={() => setScrollEnabled(true)}
+    >
       <Text style={styles.cardName}>{card.name}</Text>
       <View style={styles.cardInfo}>
         <Ionicons name="paw" size={18} color={colors.primary} />
@@ -81,12 +94,6 @@ const DiscoverScreen = () => {
     </ScrollView>
   );
 
-  const [index, setIndex] = useState(0);
-
-  const onSwiped = () => {
-    setIndex(index + 1);
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.swiperContainer}>
@@ -99,7 +106,7 @@ const DiscoverScreen = () => {
           animateOverlayLabelsOpacity
           infinite
           animateCardOpacity
-          backgroundColor={'transparent'}
+          backgroundColor="transparent"
           overlayLabels={{
             left: {
               title: 'NOPE',
@@ -135,6 +142,9 @@ const DiscoverScreen = () => {
                 },
               },
             },
+          }}
+          gestureHandlerProps={{
+            onStartShouldSetResponder: () => !scrollEnabled,
           }}
         />
       </View>
