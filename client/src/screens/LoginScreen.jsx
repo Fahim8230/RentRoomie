@@ -27,7 +27,34 @@ const LoginScreen = () => {
       // Store the JWT token using AsyncStorage
       const { token } = response.data;
       await AsyncStorage.setItem('token', token);
-  
+
+      //This is sample code for setting & getting prefs
+      const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences',{
+        "agePreference": {
+          "minAge": 20,
+          "maxAge": 35
+        },
+        "genderPreference": ["male", "female", "non-binary"],
+        "budgetPreference": {
+          "low": 500,
+          "high": 2000
+        }
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(setPrefs.data)
+
+      const preferencesResponse = await axios.get('http://10.0.2.2:5001/api/users/preferences', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(preferencesResponse.data)
+      //End of sample code
+
+      await AsyncStorage.setItem('preferences', JSON.stringify(preferencesResponse.data));
       // Navigate to the container screen
       navigation.navigate('CONTAINER');
     } catch (error) {
