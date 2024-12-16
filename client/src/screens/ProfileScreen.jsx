@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
 import {usePreferences} from "../utils/PreferencesContext";
+import axios from "axios";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -30,107 +31,116 @@ const ProfileScreen = () => {
   const { preferences, setPreferences } = usePreferences();
   console.log("PREFS")
   console.log(preferences);
-  const handleSave = () => {
-    // Handle save action
+  const handleSave = async () => {
+    const token = await AsyncStorage.getItem('token');
+    //This is sample code for setting & getting prefs
+    const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences', preferences, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log(setPrefs.data)
+
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{
-      paddingBottom: 60
-    }}>
-      <Text style={styles.headingText}>Your Profile</Text>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Gender:</Text>
-        <Text style={styles.value}>{userData.gender}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Age:</Text>
-        <Text style={styles.value}>{userData.age}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Bio:</Text>
-        <Text style={styles.value}>{userData.bio}</Text>
-      </View>
+      <ScrollView style={styles.container} contentContainerStyle={{
+        paddingBottom: 60
+      }}>
+        <Text style={styles.headingText}>Your Profile</Text>
+        <View style={styles.infoContainer}>
+          <Text style={styles.label}>Gender:</Text>
+          <Text style={styles.value}>{userData.gender}</Text>
+        </View>
+        <View style={styles.infoContainer}>
+          <Text style={styles.label}>Age:</Text>
+          <Text style={styles.value}>{userData.age}</Text>
+        </View>
+        <View style={styles.infoContainer}>
+          <Text style={styles.label}>Bio:</Text>
+          <Text style={styles.value}>{userData.bio}</Text>
+        </View>
 
-      <Text style={styles.sectionHeader}>Preferences</Text>
+        <Text style={styles.sectionHeader}>Preferences</Text>
 
-      <View style={styles.preferenceContainer}>
-        <Text style={styles.label}>Age Preference:</Text>
-        <View style={styles.row}>
+        <View key={JSON.stringify(preferences.agePreference)} style={styles.preferenceContainer}>
+          <Text style={styles.label}>Age Preference:</Text>
+          <View style={styles.row}>
+            <TextInput
+                style={styles.input}
+                placeholder="Min Age"
+                keyboardType="numeric"
+                value={preferences.agePreference.minAge.toString()}
+                onChangeText={(text) =>
+                    setPreferences({
+                      ...preferences,
+                      agePreference: { ...preferences.agePreference, minAge: parseInt(text) },
+                    })
+                }
+            />
+            <Text style={styles.toText}>to</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Max Age"
+                keyboardType="numeric"
+                value={preferences.agePreference.maxAge.toString()}
+                onChangeText={(text) =>
+                    setPreferences({
+                      ...preferences,
+                      agePreference: { ...preferences.agePreference, maxAge: parseInt(text) },
+                    })
+                }
+            />
+          </View>
+        </View>
+
+        <View key={preferences.genderPreference.join(',')} style={styles.preferenceContainer}>
+          <Text style={styles.label}>Gender Preference:</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Min Age"
-            keyboardType="numeric"
-            value={preferences.agePreference.minAge}
-            onChangeText={(text) =>
-              setPreferences({
-                ...preferences,
-                agePreference: { ...preferences.agePreference, minAge: text },
-              })
-            }
-          />
-          <Text style={styles.toText}>to</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Max Age"
-            keyboardType="numeric"
-            value={preferences.agePreference.maxAge}
-            onChangeText={(text) =>
-              setPreferences({
-                ...preferences,
-                agePreference: { ...preferences.agePreference, maxAge: text },
-              })
-            }
+              style={styles.input}
+              placeholder="e.g., Male, Female"
+              value={preferences.genderPreference.join(', ')} // Join array for display
+              onChangeText={(text) => {
+                const newGenderPreference = text.split(',').map(s => s.trim()); // Split into array
+                setPreferences({ ...preferences, genderPreference: newGenderPreference });
+              }}
           />
         </View>
-      </View>
 
-      <View style={styles.preferenceContainer}>
-        <Text style={styles.label}>Gender Preference:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Male, Female"
-          value={preferences.genderPreference}
-          onChangeText={(text) =>
-            setPreferences({ ...preferences, genderPreference: text })
-          }
-        />
-      </View>
-
-      <View style={styles.preferenceContainer}>
-        <Text style={styles.label}>Budget Preference:</Text>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.input}
-            placeholder="Low"
-            keyboardType="numeric"
-            value={preferences.budgetPreference.low}
-            onChangeText={(text) =>
-              setPreferences({
-                ...preferences,
-                budgetPreference: { ...preferences.budgetPreference, low: text },
-              })
-            }
-          />
-          <Text style={styles.toText}>to</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="High"
-            keyboardType="numeric"
-            value={preferences.budgetPreference.high}
-            onChangeText={(text) =>
-              setPreferences({
-                ...preferences,
-                budgetPreference: { ...preferences.budgetPreference, high: text },
-              })
-            }
-          />
+        <View key={JSON.stringify(preferences.budgetPreference)} style={styles.preferenceContainer}>
+          <Text style={styles.label}>Budget Preference:</Text>
+          <View style={styles.row}>
+            <TextInput
+                style={styles.input}
+                placeholder="Low"
+                keyboardType="numeric"
+                value={preferences.budgetPreference.low.toString()}
+                onChangeText={(text) =>
+                    setPreferences({
+                      ...preferences,
+                      budgetPreference: { ...preferences.budgetPreference, low: parseInt(text) },
+                    })
+                }
+            />
+            <Text style={styles.toText}>to</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="High"
+                keyboardType="numeric"
+                value={preferences.budgetPreference.high.toString()}
+                onChangeText={(text) =>
+                    setPreferences({
+                      ...preferences,
+                      budgetPreference: { ...preferences.budgetPreference, high: parseInt(text) },
+                    })
+                }
+            />
+          </View>
         </View>
-      </View>
 
-      <Button title="Save Preferences" onPress={handleSave} color={colors.primary} />
-      
-    </ScrollView>
+        <Button title="Save Preferences" onPress={handleSave} color={colors.primary} />
+
+      </ScrollView>
   );
 };
 
