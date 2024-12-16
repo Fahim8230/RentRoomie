@@ -111,6 +111,10 @@ const preferenceSchema = new mongoose.Schema(
             type: budgetPreferenceSchema,
             required: false,
         },
+        bio: {
+            type: String,
+            required: false,
+        },
     },
     { _id: false }
 );

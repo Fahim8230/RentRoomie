@@ -296,6 +296,9 @@ export const updatePreferences = async (
             }
             updateData['preference.budgetPreference'] = { low, high };
         }
+        if(bio){
+            updateData['preference.bio'] = bio;
+        }
 
         const user = await User.findByIdAndUpdate(
             userId,

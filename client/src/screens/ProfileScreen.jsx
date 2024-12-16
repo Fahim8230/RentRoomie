@@ -31,16 +31,47 @@ const ProfileScreen = () => {
   const { preferences, setPreferences } = usePreferences();
   console.log("PREFS")
   console.log(preferences);
+
+  // Local state for preferences
+  const [localAgeMin, setLocalAgeMin] = useState(preferences.agePreference.minAge.toString());
+  const [localAgeMax, setLocalAgeMax] = useState(preferences.agePreference.maxAge.toString());
+  const [localGenderPreference, setLocalGenderPreference] = useState(preferences.genderPreference.join(', '));
+  const [localBudgetLow, setLocalBudgetLow] = useState(preferences.budgetPreference.low.toString());
+  const [localBudgetHigh, setLocalBudgetHigh] = useState(preferences.budgetPreference.high.toString());
+
+  // Local state for bio
+  const [localBio, setLocalBio] = useState(userData.bio);
+
   const handleSave = async () => {
     const token = await AsyncStorage.getItem('token');
-    //This is sample code for setting & getting prefs
-    const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences', preferences, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    console.log(setPrefs.data)
 
+    // Update preferences
+    const newPreferences = {
+      bio: localBio,
+      agePreference: {
+        minAge: parseInt(localAgeMin) || '',
+        maxAge: parseInt(localAgeMax) || '',
+      },
+      genderPreference: localGenderPreference.split(',').map(s => s.trim()),
+      budgetPreference: {
+        low: parseInt(localBudgetLow) || '',
+        high: parseInt(localBudgetHigh) || '',
+      },
+    };
+
+    setPreferences(newPreferences);
+
+    // Make network request
+    try {
+      const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences', newPreferences, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(setPrefs.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -48,17 +79,24 @@ const ProfileScreen = () => {
         paddingBottom: 60
       }}>
         <Text style={styles.headingText}>Your Profile</Text>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Gender:</Text>
-          <Text style={styles.value}>{userData.gender}</Text>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Age:</Text>
-          <Text style={styles.value}>{userData.age}</Text>
-        </View>
+        {/*<View style={styles.infoContainer}>*/}
+        {/*  <Text style={styles.label}>Gender:</Text>*/}
+        {/*  <Text style={styles.value}>{userData.gender}</Text>*/}
+        {/*</View>*/}
+        {/*<View style={styles.infoContainer}>*/}
+        {/*  <Text style={styles.label}>Age:</Text>*/}
+        {/*  <Text style={styles.value}>{userData.age}</Text>*/}
+        {/*</View>*/}
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Bio:</Text>
-          <Text style={styles.value}>{userData.bio}</Text>
+          <TextInput
+              style={styles.bioInput}
+              multiline
+              numberOfLines={4}
+              placeholder="Enter your bio"
+              value={localBio}
+              onChangeText={setLocalBio}
+          />
         </View>
 
         <Text style={styles.sectionHeader}>Preferences</Text>
@@ -70,26 +108,16 @@ const ProfileScreen = () => {
                 style={styles.input}
                 placeholder="Min Age"
                 keyboardType="numeric"
-                value={preferences.agePreference.minAge.toString()}
-                onChangeText={(text) =>
-                    setPreferences({
-                      ...preferences,
-                      agePreference: { ...preferences.agePreference, minAge: parseInt(text) },
-                    })
-                }
+                value={localAgeMin}
+                onChangeText={setLocalAgeMin}
             />
             <Text style={styles.toText}>to</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Max Age"
                 keyboardType="numeric"
-                value={preferences.agePreference.maxAge.toString()}
-                onChangeText={(text) =>
-                    setPreferences({
-                      ...preferences,
-                      agePreference: { ...preferences.agePreference, maxAge: parseInt(text) },
-                    })
-                }
+                value={localAgeMax}
+                onChangeText={setLocalAgeMax}
             />
           </View>
         </View>
@@ -99,11 +127,8 @@ const ProfileScreen = () => {
           <TextInput
               style={styles.input}
               placeholder="e.g., Male, Female"
-              value={preferences.genderPreference.join(', ')} // Join array for display
-              onChangeText={(text) => {
-                const newGenderPreference = text.split(',').map(s => s.trim()); // Split into array
-                setPreferences({ ...preferences, genderPreference: newGenderPreference });
-              }}
+              value={localGenderPreference}
+              onChangeText={setLocalGenderPreference}
           />
         </View>
 
@@ -114,31 +139,21 @@ const ProfileScreen = () => {
                 style={styles.input}
                 placeholder="Low"
                 keyboardType="numeric"
-                value={preferences.budgetPreference.low.toString()}
-                onChangeText={(text) =>
-                    setPreferences({
-                      ...preferences,
-                      budgetPreference: { ...preferences.budgetPreference, low: parseInt(text) },
-                    })
-                }
+                value={localBudgetLow}
+                onChangeText={setLocalBudgetLow}
             />
             <Text style={styles.toText}>to</Text>
             <TextInput
                 style={styles.input}
                 placeholder="High"
                 keyboardType="numeric"
-                value={preferences.budgetPreference.high.toString()}
-                onChangeText={(text) =>
-                    setPreferences({
-                      ...preferences,
-                      budgetPreference: { ...preferences.budgetPreference, high: parseInt(text) },
-                    })
-                }
+                value={localBudgetHigh}
+                onChangeText={setLocalBudgetHigh}
             />
           </View>
         </View>
 
-        <Button title="Save Preferences" onPress={handleSave} color={colors.primary} />
+        <Button title="Save Changes" onPress={handleSave} color={colors.primary} />
 
       </ScrollView>
   );
@@ -203,5 +218,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  bioInput: {
+    borderWidth: 1,
+    borderColor: colors.secondary,
+    borderRadius: 5,
+    padding: 10,
+    fontFamily: fonts.Regular,
+    fontSize: 16,
+    color: colors.primary,
+    backgroundColor: '#f0f0f0',
+    textAlignVertical: 'top',
   },
 });
