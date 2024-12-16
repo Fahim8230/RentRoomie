@@ -1,12 +1,16 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
 import { useDiscoverUsers } from '../hooks/useDiscoverUsers';
+import { useLikes } from '../hooks/useLikes';
+import { colors } from '../utils/colors';
 
 const DiscoverScreen = () => {
   const { users, loading, error, fetchUsers } = useDiscoverUsers();
+  const { likedUsers, getLikedUsers, likeUser, unlikeUser } = useLikes();
 
   useEffect(() => {
-    fetchUsers(); // Fetch users when the component mounts
+    fetchUsers();
+    getLikedUsers();
   }, []);
 
   const calculateAge = (dateOfBirth) => {
@@ -16,18 +20,39 @@ const DiscoverScreen = () => {
     return Math.abs(ageDate.getUTCFullYear() - 1970);
   };
 
-  const renderUserCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.name}>{`${item.firstName} ${item.lastName}`}</Text>
-      <Text style={styles.age}>Age: {calculateAge(item.dateOfBirth)}</Text>
-      <Text style={styles.bio}>Bio: {item.preference?.bio || 'No bio available.'}</Text>
-      <Button title="Like" onPress={() => handleLike(item._id)} />
-    </View>
-  );
+  const isUserLiked = (userId) => {
+    return likedUsers.some(likedUser => likedUser._id === userId);
+  };
 
-  const handleLike = (userId) => {
-    // Implement like functionality here
-    console.log(`Liked user with ID: ${userId}`);
+  const handleLikeToggle = async (userId) => {
+    if (isUserLiked(userId)) {
+      const success = await unlikeUser(userId);
+      if (success) {
+        console.log(`Unliked user with ID: ${userId}`);
+      }
+    } else {
+      const success = await likeUser(userId);
+      if (success) {
+        console.log(`Liked user with ID: ${userId}`);
+      }
+    }
+  };
+
+  const renderUserCard = ({ item }) => {
+    const liked = isUserLiked(item._id);
+    
+    return (
+      <View style={styles.card}>
+        <Text style={styles.name}>{`${item.firstName} ${item.lastName}`}</Text>
+        <Text style={styles.age}>Age: {calculateAge(item.dateOfBirth)}</Text>
+        <Text style={styles.bio}>Bio: {item.preference?.bio || 'No bio available.'}</Text>
+        <Button 
+          title={liked ? "Unlike" : "Like"}
+          onPress={() => handleLikeToggle(item._id)}
+          color={liked ? colors.secondary : colors.primary}
+        />
+      </View>
+    );
   };
 
   if (loading) return <Text>Loading...</Text>;
