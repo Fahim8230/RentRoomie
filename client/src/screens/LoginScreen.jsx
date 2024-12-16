@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import asyncStorage from "@react-native-async-storage/async-storage/src/AsyncStorage";
 import {usePreferences} from "../utils/PreferencesContext";
+import {apiURL} from "../utils/utils";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -25,7 +26,7 @@ const LoginScreen = () => {
       const payload = { email, password };
   
       // Make the POST request to the backend
-      const response = await axios.post('http://10.0.2.2:5001/api/users/login', payload);
+      const response = await axios.post(apiURL + '/api/users/login', payload);
   
       // Store the JWT token using AsyncStorage
       const { token } = response.data;
@@ -49,11 +50,26 @@ const LoginScreen = () => {
       // });
       // console.log(setPrefs.data)
 
-      const preferencesResponse = await axios.get('http://10.0.2.2:5001/api/users/preferences', {
+      const preferencesResponse = await axios.get(apiURL + '/api/users/preferences', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
+      if (!preferencesResponse.data || Object.keys(preferencesResponse.data).length === 0) {
+        const defaultPrefs = {
+          agePreference: {
+            minAge: 18,
+            maxAge: 100
+          },
+          genderPreference: ["male", "female", "non-binary"],
+          budgetPreference: {
+            low: 0,
+            high: 10000
+          },
+          bio: ""
+        };
+        preferencesResponse.data = defaultPrefs;
+      }
       console.log(preferencesResponse.data);
       setPreferences(preferencesResponse.data);
       console.log(preferences);

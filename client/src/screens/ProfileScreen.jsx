@@ -1,36 +1,40 @@
-import { StyleSheet, Text, View, Button, TextInput, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { colors } from '../utils/colors';
-import { fonts } from '../utils/fonts';
-import {usePreferences} from "../utils/PreferencesContext";
-import axios from "axios";
+import {useNavigation} from '@react-navigation/native';
+import {colors} from '../utils/colors';
+import {fonts} from '../utils/fonts';
+import {usePreferences} from '../utils/PreferencesContext';
+import axios from 'axios';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
 
   // Placeholder user data
-  const userData = {
-    gender: 'Not Specified',
-    age: 'Not Specified',
-    bio: 'No bio available.',
-    preferences: {
-      agePreference: {
-        minAge: '',
-        maxAge: '',
-      },
-      genderPreference: '',
-      budgetPreference: {
-        low: '',
-        high: '',
-      },
+  const userPrefs = {
+    agePreference: {
+      minAge: 20,
+      maxAge: 35,
     },
+    budgetPreference: {
+      low: 500,
+      high: 4000,
+    },
+    genderPreference: ['male', 'female', 'non-binary'],
+    bio: 'No bio available.',
   };
 
-  const { preferences, setPreferences } = usePreferences();
-  console.log("PREFS")
-  console.log(preferences);
+  const {preferences, setPreferences} = usePreferences();
+  if (!preferences) {
+    setPreferences(userPrefs);
+  }
 
   // Local state for preferences
   const [localAgeMin, setLocalAgeMin] = useState(preferences.agePreference.minAge.toString());
@@ -38,9 +42,9 @@ const ProfileScreen = () => {
   const [localGenderPreference, setLocalGenderPreference] = useState(preferences.genderPreference.join(', '));
   const [localBudgetLow, setLocalBudgetLow] = useState(preferences.budgetPreference.low.toString());
   const [localBudgetHigh, setLocalBudgetHigh] = useState(preferences.budgetPreference.high.toString());
+  const [localBio, setLocalBio] = useState(preferences.bio);
 
   // Local state for bio
-  const [localBio, setLocalBio] = useState(userData.bio);
 
   const handleSave = async () => {
     const token = await AsyncStorage.getItem('token');
@@ -101,7 +105,7 @@ const ProfileScreen = () => {
 
         <Text style={styles.sectionHeader}>Preferences</Text>
 
-        <View key={JSON.stringify(preferences.agePreference)} style={styles.preferenceContainer}>
+        <View style={styles.preferenceContainer}>
           <Text style={styles.label}>Age Preference:</Text>
           <View style={styles.row}>
             <TextInput
@@ -122,7 +126,7 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        <View key={preferences.genderPreference.join(',')} style={styles.preferenceContainer}>
+        <View style={styles.preferenceContainer}>
           <Text style={styles.label}>Gender Preference:</Text>
           <TextInput
               style={styles.input}
@@ -132,7 +136,7 @@ const ProfileScreen = () => {
           />
         </View>
 
-        <View key={JSON.stringify(preferences.budgetPreference)} style={styles.preferenceContainer}>
+        <View style={styles.preferenceContainer}>
           <Text style={styles.label}>Budget Preference:</Text>
           <View style={styles.row}>
             <TextInput

@@ -19,9 +19,9 @@ export const useDiscoverUsers = () => {
       const headers = {
         Authorization: `Bearer ${token}`
       };
-      console.log('Headers:', headers); // Debug headers
+      // console.log('Headers:', {headers}); // Debug headers
 
-      const response = await axios.get(`${apiURL}/api/users/preferences`, { headers });
+      const response = await axios.get(`${apiURL}/api/users/`, { headers });
       console.log('Response:', response.data); // Debug response
 
       setUsers(response.data);

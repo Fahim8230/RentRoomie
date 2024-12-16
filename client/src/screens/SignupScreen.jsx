@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Pressable, Platform, ScrollView } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Pressable, Platform, ScrollView, SafeAreaView } from 'react-native';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { colors } from '../utils/colors';
@@ -8,6 +8,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import { apiURL } from '../utils/utils';
 
 const SignupScreen = () => {
   const navigation = useNavigation();
@@ -56,7 +57,7 @@ const SignupScreen = () => {
       };
 
       // const response = await axios.post('http://localhost:5001/api/users', payload);
-        const response = await axios.post('http://10.0.2.2:5001/api/users', payload);
+      const response = await axios.post(apiURL + '/api/users', payload);
       if (response.status === 201) {
         alert('User registered successfully!');
         navigation.navigate('PROFILECREATION'); // Navigate to the profile creation screen
@@ -68,106 +69,108 @@ const SignupScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Let's get </Text>
-        <Text style={styles.headingText}>Started</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.textContainer}>
+          <Text style={styles.headingText}>Let's get </Text>
+          <Text style={styles.headingText}>Started</Text>
+        </View>
 
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <MaterialIcons name={'drive-file-rename-outline'} size={30} color={colors.secondary} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="First Name"
-            placeholderTextColor={colors.secondary}
-            value={firstName}
-            onChangeText={setFirstName}
-          />
+        <View style={styles.formContainer}>
+          <View style={styles.inputContainer}>
+            <MaterialIcons name={'drive-file-rename-outline'} size={30} color={colors.secondary} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="First Name"
+              placeholderTextColor={colors.secondary}
+              value={firstName}
+              onChangeText={setFirstName}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <MaterialIcons name={'drive-file-rename-outline'} size={30} color={colors.secondary} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="Last Name"
+              placeholderTextColor={colors.secondary}
+              value={lastName}
+              onChangeText={setLastName}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Ionicons name={'mail-outline'} size={30} color={colors.secondary} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="Email"
+              placeholderTextColor={colors.secondary}
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <SimpleLineIcons name={'lock'} size={30} color={colors.secondary} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="Password"
+              placeholderTextColor={colors.secondary}
+              secureTextEntry={true}
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Ionicons name={'calendar'} size={40} color={colors.secondary} />
+            {!showPicker && (
+              <Pressable onPress={toggleDatepicker}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Date of Birth"
+                  value={dateOfBirth}
+                  placeholderTextColor={colors.secondary}
+                  editable={false}
+                />
+              </Pressable>
+            )}
+            {showPicker && (
+              <DateTimePicker mode="date" display="spinner" value={date} onChange={onChange} />
+            )}
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Gender (e.g., Male/Female)"
+              placeholderTextColor={colors.secondary}
+              value={gender}
+              onChangeText={setGender}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Budget Low (Optional)"
+              placeholderTextColor={colors.secondary}
+              keyboardType="numeric"
+              value={budgetLow}
+              onChangeText={setBudgetLow}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Budget High (Optional)"
+              placeholderTextColor={colors.secondary}
+              keyboardType="numeric"
+              value={budgetHigh}
+              onChangeText={setBudgetHigh}
+            />
+          </View>
+          <TouchableOpacity style={styles.loginButtonWrapper} onPress={handleSignup}>
+            <Text style={styles.loginText}>Sign up</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.inputContainer}>
-          <MaterialIcons name={'drive-file-rename-outline'} size={30} color={colors.secondary} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Last Name"
-            placeholderTextColor={colors.secondary}
-            value={lastName}
-            onChangeText={setLastName}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <Ionicons name={'mail-outline'} size={30} color={colors.secondary} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Email"
-            placeholderTextColor={colors.secondary}
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <SimpleLineIcons name={'lock'} size={30} color={colors.secondary} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Password"
-            placeholderTextColor={colors.secondary}
-            secureTextEntry={true}
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <Ionicons name={'calendar'} size={40} color={colors.secondary} />
-          {!showPicker && (
-            <Pressable onPress={toggleDatepicker}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Date of Birth"
-                value={dateOfBirth}
-                placeholderTextColor={colors.secondary}
-                editable={false}
-              />
-            </Pressable>
-          )}
-          {showPicker && (
-            <DateTimePicker mode="date" display="spinner" value={date} onChange={onChange} />
-          )}
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Gender (e.g., Male/Female)"
-            placeholderTextColor={colors.secondary}
-            value={gender}
-            onChangeText={setGender}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Budget Low (Optional)"
-            placeholderTextColor={colors.secondary}
-            keyboardType="numeric"
-            value={budgetLow}
-            onChangeText={setBudgetLow}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Budget High (Optional)"
-            placeholderTextColor={colors.secondary}
-            keyboardType="numeric"
-            value={budgetHigh}
-            onChangeText={setBudgetHigh}
-          />
-        </View>
-        <TouchableOpacity style={styles.loginButtonWrapper} onPress={handleSignup}>
-          <Text style={styles.loginText}>Sign up</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

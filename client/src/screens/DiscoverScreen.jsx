@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,6 +9,9 @@ import {useDiscoverUsers} from "../hooks/useDiscoverUsers";
 
 const DiscoverScreen = () => {
   const { users, loading, error, fetchUsers } = useDiscoverUsers();
+  // useEffect(()=>{
+  //   fetchUsers()
+  // });
 
   const exampleCards = [
     { id: 1, name: 'Max', age: 3,  image: 'https://www.princeton.edu/sites/default/files/styles/1x_full_2x_half_crop/public/images/2022/02/KOA_Nassau_2697x1517.jpg?itok=Bg2K7j7J' },
