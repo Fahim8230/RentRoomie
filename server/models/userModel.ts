@@ -24,6 +24,7 @@ export interface IBudgetPreference {
 }
 
 export interface IPreference {
+    bio: string;
     agePreference?: IAgePreference;
     genderPreference?: string[];
     budgetPreference?: IBudgetPreference;

@@ -251,7 +251,7 @@ export const updatePreferences = async (
     try {
         const userId = req.user.id;
 
-        const { agePreference, genderPreference, budgetPreference } = req.body;
+        const { agePreference, genderPreference, budgetPreference, bio } = req.body;
 
         // Validation
         const updateData: any = {};
