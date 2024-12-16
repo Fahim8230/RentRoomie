@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View, Button, TextInput, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
+import {usePreferences} from "../utils/PreferencesContext";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -25,14 +27,17 @@ const ProfileScreen = () => {
     },
   };
 
-  const [preferences, setPreferences] = useState(userData.preferences);
-
+  const { preferences, setPreferences } = usePreferences();
+  console.log("PREFS")
+  console.log(preferences);
   const handleSave = () => {
     // Handle save action
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{
+      paddingBottom: 60
+    }}>
       <Text style={styles.headingText}>Your Profile</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Gender:</Text>

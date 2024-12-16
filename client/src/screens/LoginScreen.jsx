@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
@@ -7,6 +7,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import asyncStorage from "@react-native-async-storage/async-storage/src/AsyncStorage";
+import {usePreferences} from "../utils/PreferencesContext";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -15,6 +17,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const { setPreferences, preferences} = usePreferences();
   // Function to handle login
   const handleLogin = async () => {
     try {
@@ -28,30 +31,32 @@ const LoginScreen = () => {
       const { token } = response.data;
       await AsyncStorage.setItem('token', token);
 
-      //This is sample code for setting & getting prefs
-      const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences',{
-        "agePreference": {
-          "minAge": 20,
-          "maxAge": 35
-        },
-        "genderPreference": ["male", "female", "non-binary"],
-        "budgetPreference": {
-          "low": 500,
-          "high": 2000
-        }
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      console.log(setPrefs.data)
+      // //This is sample code for setting & getting prefs
+      // const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences',{
+      //   "agePreference": {
+      //     "minAge": 20,
+      //     "maxAge": 35
+      //   },
+      //   "genderPreference": ["male", "female", "non-binary"],
+      //   "budgetPreference": {
+      //     "low": 500,
+      //     "high": 2000
+      //   }
+      // }, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`
+      //   }
+      // });
+      // console.log(setPrefs.data)
 
       const preferencesResponse = await axios.get('http://10.0.2.2:5001/api/users/preferences', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log(preferencesResponse.data)
+      console.log(preferencesResponse.data);
+      setPreferences(preferencesResponse.data);
+      console.log(preferences);
       //End of sample code
 
       await AsyncStorage.setItem('preferences', JSON.stringify(preferencesResponse.data));

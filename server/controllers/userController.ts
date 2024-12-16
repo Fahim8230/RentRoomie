@@ -332,7 +332,7 @@ export const getPreferences = async (
             return;
         }
 
-        res.status(200).json({ preferences: user.preference });
+        res.status(200).json(user.preference);
     } catch (error: any) {
         console.error('Error in getPreferences:', error);
         res.status(500).json({ message: error.message });
