@@ -205,7 +205,7 @@ export async function getUserProfile(req: Request, res: Response): Promise<void>
 // Get all users
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users = await User.find();
+        const users = await User.find().select('firstName lastName dateOfBirth gender preference.bio');
         res.status(200).json(users);
     } catch (error: any) {
         res.status(500).json({message: error.message});
@@ -444,6 +444,31 @@ export const getLikedUsers = async (
         res.status(200).json(user.likedUsers);
     } catch (error: any) {
         console.error('Error in getLikedUsers:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+export const getMatches = async (
+    req: Request & { user?: any },
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId)
+            .populate({
+                path: 'likedUsers',
+                match: { likedUsers: userId },
+                select: 'firstName lastName dateOfBirth gender preference.bio' // Select relevant fields
+            });
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res.status(200).json(user.likedUsers);
+    } catch (error: any) {
+        console.error('Error in getMatches:', error);
         res.status(500).json({ message: error.message });
     }
 }
