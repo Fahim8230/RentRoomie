@@ -40,6 +40,7 @@ export interface IUser extends Document {
     gender: string;
     additionalInfo?: IAdditionalInfo; // Optional
     preference?: IPreference; // New preference field
+    likedUsers: mongoose.Types.ObjectId[];
 }
 
 // Existing Schemas
@@ -159,6 +160,10 @@ const userSchema = new mongoose.Schema(
             type: preferenceSchema,
             required: false, // Optional
         },
+        likedUsers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
     {
         timestamps: true

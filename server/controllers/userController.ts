@@ -341,3 +341,109 @@ export const getPreferences = async (
         res.status(500).json({ message: error.message });
     }
 };
+export const likeUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as Request & { user?: any }).user.id; // ID of user doing the liking
+        const { targetUserId } = req.body; // ID of user being liked
+
+        if (!targetUserId) {
+            res.status(400).json({ message: 'Target user ID is required' });
+            return;
+        }
+
+        // Find the user doing the liking
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if target user exists
+        const targetUser = await User.findById(targetUserId);
+        if (!targetUser) {
+            res.status(404).json({ message: 'Target user not found' });
+            return;
+        }
+
+        // Check if already liked
+        if (user.likedUsers && user.likedUsers.includes(targetUserId)) {
+            res.status(400).json({ message: 'User already liked' });
+            return;
+        }
+
+        // Add targetUserId to likedUsers array
+        await User.findByIdAndUpdate(
+            userId,
+            { $push: { likedUsers: targetUserId } },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'User liked successfully' });
+    } catch (error: any) {
+        console.error('Error in likeUser:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const unlikeUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as Request & { user?: any }).user.id; // ID of user doing the unliking
+        const { targetUserId } = req.body; // ID of user being unliked
+
+        if (!targetUserId) {
+            res.status(400).json({ message: 'Target user ID is required' });
+            return;
+        }
+
+        // Find the user doing the unliking
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if target user exists
+        const targetUser = await User.findById(targetUserId);
+        if (!targetUser) {
+            res.status(404).json({ message: 'Target user not found' });
+            return;
+        }
+
+        // Check if user was liked in the first place
+        if (!user.likedUsers || !user.likedUsers.includes(targetUserId)) {
+            res.status(400).json({ message: 'User was not previously liked' });
+            return;
+        }
+
+        // Remove targetUserId from likedUsers array
+        await User.findByIdAndUpdate(
+            userId,
+            { $pull: { likedUsers: targetUserId } },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'User unliked successfully' });
+    } catch (error: any) {
+        console.error('Error in unlikeUser:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+export const getLikedUsers = async (
+    req: Request & { user?: any }, // Extend Request to include user
+    res: Response
+): Promise<void> => {
+    console.log("HI");
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId).populate('likedUsers');
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        res.status(200).json(user.likedUsers);
+    } catch (error: any) {
+        console.error('Error in getLikedUsers:', error);
+        res.status(500).json({ message: error.message });
+    }
+}

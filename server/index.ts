@@ -18,6 +18,7 @@ app.use('/api/users', userRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
+  console.log("HI");
   res.send('Welcome to RentRoomie API');
 });
 
