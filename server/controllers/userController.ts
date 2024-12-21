@@ -319,7 +319,7 @@ export const updatePreferences = async (
 };
 
 // Get roommate preferences
-export const getPreferences = async (
+export const getPreferences = async (   
     req: Request & { user?: any }, // Extend Request to include user
     res: Response
 ): Promise<void> => {
@@ -496,6 +496,57 @@ export const likeUser = async (
     }
 };
 
+  // Remove a like
+export const removeLike = async (
+    req: Request & { user?: any },
+    res: Response
+  ): Promise<void> => {
+    try {
+      const likerId = req.user.id;
+      const { likedUserId } = req.body;
+  
+      // Validate likedUserId
+      if (!likedUserId) {
+        res.status(400).json({ error: 'likedUserId is required' });
+        return;
+      }
+  
+      // Prevent unliking oneself
+      if (likerId === likedUserId) {
+        res.status(400).json({ error: 'You cannot unlike yourself' });
+        return;
+      }
+  
+      // Check if the like exists
+      const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
+      if (!existingLike) {
+        res.status(404).json({ error: 'Like not found' });
+        return;
+      }
+  
+      // Remove the like
+      await Like.deleteOne({ _id: existingLike._id });
+  
+      // Check if a match exists
+      const existingMatch = await Match.findOne({
+        userIds: { $all: [likerId, likedUserId] },
+      });
+  
+      if (existingMatch) {
+        // Remove the match since the mutual like is broken
+        await Match.deleteOne({ _id: existingMatch._id });
+  
+        res.status(200).json({
+          message: 'Like removed and match deleted successfully',
+        });
+      } else {
+        res.status(200).json({ message: 'Like removed successfully' });
+      }
+    } catch (error: any) {
+      console.error('Error in removeLike:', error);
+      res.status(500).json({ error: 'Failed to remove like' });
+    }
+  };
 
 // Get users who have liked the authenticated user
 export const getUsersWhoLikedMe = async (
