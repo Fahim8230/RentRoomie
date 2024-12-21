@@ -1,11 +1,12 @@
 // controllers/userController.ts
-import * as bcrypt from 'bcryptjs';
-import { Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
-import Like from '../models/likeModel';
-import Match from '../models/matchModel';
-import User, { IUser } from '../models/userModel';
-import Chat from '../models/chatModel';
+
+import * as bcrypt from 'bcryptjs'; // bcrypt (library for hashing passwords)
+import { Request, Response } from 'express'; // express (web framework)
+import * as jwt from 'jsonwebtoken'; // jsonwebtoken (JWT library)
+import Like from '../models/likeModel'; // Like (Mongoose model for "like" relationships)
+import Match from '../models/matchModel'; // Match (Mongoose model for matched users)
+import User, { IUser } from '../models/userModel'; // User (Mongoose model for user data)
+import Chat from '../models/chatModel'; // Chat (Mongoose model for chat messages)
 
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -17,7 +18,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             password,
             dateOfBirth,
             gender,
-            additionalInfo // Destructure additionalInfo from request body
+            additionalInfo // Destructure (pull out) additionalInfo from the request body
         } = req.body;
 
         // Check if all required fields are present
@@ -59,7 +60,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        // Hash the password
+        // Hash (encrypt) the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create and save the new user
@@ -70,7 +71,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             password: hashedPassword,
             dateOfBirth: new Date(dateOfBirth),
             gender,
-            additionalInfo // Include additionalInfo if provided
+            additionalInfo
         });
         await user.save();
 
@@ -104,7 +105,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
                 return;
             }
 
-            // Merge additionalInfo into updateData
+            // Merge (combine) additionalInfo into updateData
             updateData.additionalInfo = additionalInfo;
         }
 
@@ -150,9 +151,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Create JWT payload with user id
+        // Create JWT payload (data stored in token) with user id
         const payload = {
-            id: user._id, // Include user ID
+            id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -170,7 +171,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ error: 'Login failed' });
     }
 };
-
 
 // Get detailed user profile
 export async function getUserProfile(req: Request, res: Response): Promise<void> {
@@ -209,7 +209,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         const users = await User.find();
         res.status(200).json(users);
     } catch (error: any) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -218,27 +218,26 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     try {
         const user = await User.findById(req.params.id);
         if (!user) {
-            res.status(404).json({message: 'User not found'});
+            res.status(404).json({ message: 'User not found' });
             return;
         }
         res.status(200).json(user);
     } catch (error: any) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 };
-
 
 // Delete a user by ID
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) {
-            res.status(404).json({message: 'User not found'});
+            res.status(404).json({ message: 'User not found' });
             return;
         }
-        res.status(200).json({message: 'User deleted successfully'});
+        res.status(200).json({ message: 'User deleted successfully' });
     } catch (error: any) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -246,7 +245,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
 // Update roommate preferences
 export const updatePreferences = async (
-    req: Request & { user?: any }, // Extend Request to include user
+    req: Request & { user?: any }, // Extend (add to) Request to include user
     res: Response
 ): Promise<void> => {
     try {
@@ -309,9 +308,10 @@ export const updatePreferences = async (
             return;
         }
 
-        res
-            .status(200)
-            .json({ message: 'Preferences updated successfully', preferences: user.preference });
+        res.status(200).json({
+            message: 'Preferences updated successfully',
+            preferences: user.preference,
+        });
     } catch (error: any) {
         console.error('Error in updatePreferences:', error);
         res.status(500).json({ message: error.message });
@@ -319,8 +319,8 @@ export const updatePreferences = async (
 };
 
 // Get roommate preferences
-export const getPreferences = async (   
-    req: Request & { user?: any }, // Extend Request to include user
+export const getPreferences = async (
+    req: Request & { user?: any }, 
     res: Response
 ): Promise<void> => {
     try {
@@ -340,78 +340,7 @@ export const getPreferences = async (
     }
 };
 
-
-// // Like a user
-// export const likeUser = async (
-//     req: Request & { user?: any },
-//     res: Response
-//   ): Promise<void> => {
-//     try {
-//       const likerId = req.user.id;
-//       const { likedUserId } = req.body;
-  
-//       // Validate likedUserId
-//       if (!likedUserId) {
-//         res.status(400).json({ error: 'likedUserId is required' });
-//         return;
-//       }
-  
-//       // Prevent liking oneself
-//       if (likerId === likedUserId) {
-//         res.status(400).json({ error: 'You cannot like yourself' });
-//         return;
-//       }
-  
-//       // Check if likedUserId exists
-//       const likedUser = await User.findById(likedUserId);
-//       if (!likedUser) {
-//         res.status(404).json({ error: 'User to like not found' });
-//         return;
-//       }
-  
-//       // Check if the like already exists
-//       const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
-//       if (existingLike) {
-//         res.status(400).json({ error: 'You have already liked this user' });
-//         return;
-//       }
-  
-//       // Save the new like
-//       const newLike = new Like({ likerId, likedId: likedUserId });
-//       await newLike.save();
-  
-//       // Check for mutual like
-//       const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
-//       if (reciprocalLike) {
-//         // Check if a match already exists
-//         const existingMatch = await Match.findOne({
-//           userIds: { $all: [likerId, likedUserId] },
-//         });
-  
-//         if (!existingMatch) {
-//           // Create a new match
-//           const newMatch = new Match({ userIds: [likerId, likedUserId] });
-//           await newMatch.save();
-//         }
-  
-//         // Retrieve matched user data to return
-//         const matchedUser = await User.findById(likedUserId).select(
-//           'firstName lastName email'
-//         );
-  
-//         res.status(200).json({
-//           message: "It's a match!",
-//           matchedUser,
-//         });
-//       } else {
-//         res.status(200).json({ message: 'User liked successfully' });
-//       }
-//     } catch (error: any) {
-//       console.error('Error in likeUser:', error);
-//       res.status(500).json({ error: 'Failed to like user' });
-//     }
-//   };
-
+// Like a user
 export const likeUser = async (
     req: Request & { user?: any },
     res: Response
@@ -451,7 +380,10 @@ export const likeUser = async (
         await newLike.save();
 
         // Check for mutual like
-        const reciprocalLike = await Like.findOne({ likerId: likedUserId, likedId: likerId });
+        const reciprocalLike = await Like.findOne({
+            likerId: likedUserId,
+            likedId: likerId,
+        });
         if (reciprocalLike) {
             // Check if a match already exists
             const existingMatch = await Match.findOne({
@@ -473,7 +405,7 @@ export const likeUser = async (
                 // Create a new chat document
                 const newChat = new Chat({
                     participants: [likerId, likedUserId],
-                    messages: [], // Initialize with no messages
+                    messages: [],
                 });
                 await newChat.save();
             }
@@ -496,129 +428,138 @@ export const likeUser = async (
     }
 };
 
-  // Remove a like
+// Remove a like
 export const removeLike = async (
     req: Request & { user?: any },
     res: Response
-  ): Promise<void> => {
+): Promise<void> => {
     try {
-      const likerId = req.user.id;
-      const { likedUserId } = req.body;
-  
-      // Validate likedUserId
-      if (!likedUserId) {
-        res.status(400).json({ error: 'likedUserId is required' });
-        return;
-      }
-  
-      // Prevent unliking oneself
-      if (likerId === likedUserId) {
-        res.status(400).json({ error: 'You cannot unlike yourself' });
-        return;
-      }
-  
-      // Check if the like exists
-      const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
-      if (!existingLike) {
-        res.status(404).json({ error: 'Like not found' });
-        return;
-      }
-  
-      // Remove the like
-      await Like.deleteOne({ _id: existingLike._id });
-  
-      // Check if a match exists
-      const existingMatch = await Match.findOne({
-        userIds: { $all: [likerId, likedUserId] },
-      });
-  
-      if (existingMatch) {
-        // Remove the match since the mutual like is broken
-        await Match.deleteOne({ _id: existingMatch._id });
-  
-        res.status(200).json({
-          message: 'Like removed and match deleted successfully',
+        const likerId = req.user.id;
+        const { likedUserId } = req.body;
+
+        // Validate likedUserId
+        if (!likedUserId) {
+            res.status(400).json({ error: 'likedUserId is required' });
+            return;
+        }
+
+        // Prevent unliking oneself
+        if (likerId === likedUserId) {
+            res.status(400).json({ error: 'You cannot unlike yourself' });
+            return;
+        }
+
+        // Check if the like exists
+        const existingLike = await Like.findOne({ likerId, likedId: likedUserId });
+        if (!existingLike) {
+            res.status(404).json({ error: 'Like not found' });
+            return;
+        }
+
+        // Remove the like
+        await Like.deleteOne({ _id: existingLike._id });
+
+        // Check if a match exists
+        const existingMatch = await Match.findOne({
+            userIds: { $all: [likerId, likedUserId] },
         });
-      } else {
-        res.status(200).json({ message: 'Like removed successfully' });
-      }
+
+        if (existingMatch) {
+            // Remove the match since the mutual like is broken
+            await Match.deleteOne({ _id: existingMatch._id });
+
+            res.status(200).json({
+                message: 'Like removed and match deleted successfully',
+            });
+        } else {
+            res.status(200).json({ message: 'Like removed successfully' });
+        }
     } catch (error: any) {
-      console.error('Error in removeLike:', error);
-      res.status(500).json({ error: 'Failed to remove like' });
+        console.error('Error in removeLike:', error);
+        res.status(500).json({ error: 'Failed to remove like' });
     }
-  };
+};
 
 // Get users who have liked the authenticated user
 export const getUsersWhoLikedMe = async (
     req: Request & { user?: any },
     res: Response
-  ): Promise<void> => {
+): Promise<void> => {
     try {
-      const userId = req.user.id;
-  
-      // Find all likes where the likedId is the authenticated user
-      const likes = await Like.find({ likedId: userId }).populate('likerId', 'firstName lastName email');
-  
-      // Extract the users who liked the authenticated user
-      const usersWhoLikedMe = likes.map(like => like.likerId);
-  
-      res.status(200).json(usersWhoLikedMe);
-    } catch (error: any) {
-      console.error('Error in getUsersWhoLikedMe:', error);
-      res.status(500).json({ error: 'Failed to retrieve users who liked you' });
-    }
-  };
-  
-  // Get users the authenticated user has liked
-  export const getUsersILiked = async (
-    req: Request & { user?: any },
-    res: Response
-  ): Promise<void> => {
-    try {
-      const userId = req.user.id;
-  
-      // Find all likes where the likerId is the authenticated user
-      const likes = await Like.find({ likerId: userId }).populate('likedId', 'firstName lastName email');
-  
-      // Extract the users the authenticated user has liked
-      const usersILiked = likes.map(like => like.likedId);
-  
-      res.status(200).json(usersILiked);
-    } catch (error: any) {
-      console.error('Error in getUsersILiked:', error);
-      res.status(500).json({ error: 'Failed to retrieve users you have liked' });
-    }
-  };
-  
-  // Get matches for the authenticated user
-  export const getMyMatches = async (
-    req: Request & { user?: any },
-    res: Response
-  ): Promise<void> => {
-    try {
-      const userId = req.user.id;
-  
-      // Find all matches where the userIds array contains the authenticated user
-      const matches = await Match.find({ userIds: userId }).populate('userIds', 'firstName lastName email');
-  
-      // Extract matched users (excluding the authenticated user)
-      const matchedUsers = matches.map(match => {
-        return match.userIds.find((user: any) => user._id.toString() !== userId);
-      });
-  
-      res.status(200).json(matchedUsers);
-    } catch (error: any) {
-      console.error('Error in getMyMatches:', error);
-      res.status(500).json({ error: 'Failed to retrieve your matches' });
-    }
-  };
+        const userId = req.user.id;
 
+        // Find all likes where the likedId is the authenticated user
+        const likes = await Like.find({ likedId: userId }).populate(
+            'likerId',
+            'firstName lastName email'
+        );
+
+        // Extract the users who liked the authenticated user
+        const usersWhoLikedMe = likes.map((like) => like.likerId);
+
+        res.status(200).json(usersWhoLikedMe);
+    } catch (error: any) {
+        console.error('Error in getUsersWhoLikedMe:', error);
+        res.status(500).json({ error: 'Failed to retrieve users who liked you' });
+    }
+};
+
+// Get users the authenticated user has liked
+export const getUsersILiked = async (
+    req: Request & { user?: any },
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        // Find all likes where the likerId is the authenticated user
+        const likes = await Like.find({ likerId: userId }).populate(
+            'likedId',
+            'firstName lastName email'
+        );
+
+        // Extract the users the authenticated user has liked
+        const usersILiked = likes.map((like) => like.likedId);
+
+        res.status(200).json(usersILiked);
+    } catch (error: any) {
+        console.error('Error in getUsersILiked:', error);
+        res.status(500).json({ error: 'Failed to retrieve users you have liked' });
+    }
+};
+
+// Get matches for the authenticated user
+export const getMyMatches = async (
+    req: Request & { user?: any },
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        // Find all matches where the userIds array contains the authenticated user
+        const matches = await Match.find({ userIds: userId }).populate(
+            'userIds',
+            'firstName lastName email'
+        );
+
+        // Extract matched users (excluding the authenticated user)
+        const matchedUsers = matches.map((match) => {
+            return match.userIds.find((u: any) => u._id.toString() !== userId);
+        });
+
+        res.status(200).json(matchedUsers);
+    } catch (error: any) {
+        console.error('Error in getMyMatches:', error);
+        res.status(500).json({ error: 'Failed to retrieve your matches' });
+    }
+};
+
+// Get chat history
 export const getChatHistory = async (
     req: Request & { user?: any },
     res: Response
 ): Promise<void> => {
     try {
-        // Log request details
         console.log('Request received');
         console.log('Authenticated user ID:', req.user?.id);
         console.log('Matched user ID:', req.params.matchedUserId);
@@ -627,7 +568,9 @@ export const getChatHistory = async (
         const { matchedUserId } = req.params; // Matched user ID from the route
 
         if (!userId || !matchedUserId) {
-            res.status(400).json({ error: 'Both authenticated user ID and matched user ID are required' });
+            res.status(400).json({
+                error: 'Both authenticated user ID and matched user ID are required',
+            });
             return;
         }
 
@@ -666,7 +609,7 @@ export const getChatHistory = async (
 
         // Step 3: Format messages
         const formattedMessages = chat.messages.map((message) => {
-            const sender = message.sender as any; // Type casting to handle populated sender
+            const sender = message.sender as any; // Type casting (treating one type as another) to handle populated sender
             console.log('Processing message:', message);
             return {
                 sender: {
@@ -691,9 +634,7 @@ export const getChatHistory = async (
     }
 };
 
-
-
-
+// Send a message
 export const sendMessage = async (
     req: Request & { user?: IUser },
     res: Response
