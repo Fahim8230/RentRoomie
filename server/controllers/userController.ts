@@ -205,7 +205,7 @@ export async function getUserProfile(req: Request, res: Response): Promise<void>
 // Get all users
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users = await User.find();
+        const users = await User.find().select('firstName lastName dateOfBirth gender preference.bio');
         res.status(200).json(users);
     } catch (error: any) {
         res.status(500).json({message: error.message});
@@ -251,7 +251,7 @@ export const updatePreferences = async (
     try {
         const userId = req.user.id;
 
-        const { agePreference, genderPreference, budgetPreference } = req.body;
+        const { agePreference, genderPreference, budgetPreference, bio } = req.body;
 
         // Validation
         const updateData: any = {};
@@ -296,6 +296,9 @@ export const updatePreferences = async (
             }
             updateData['preference.budgetPreference'] = { low, high };
         }
+        if(bio){
+            updateData['preference.bio'] = bio;
+        }
 
         const user = await User.findByIdAndUpdate(
             userId,
@@ -332,9 +335,140 @@ export const getPreferences = async (
             return;
         }
 
-        res.status(200).json({ preferences: user.preference });
+        res.status(200).json(user.preference);
     } catch (error: any) {
         console.error('Error in getPreferences:', error);
         res.status(500).json({ message: error.message });
     }
 };
+export const likeUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as Request & { user?: any }).user.id; // ID of user doing the liking
+        const { targetUserId } = req.body; // ID of user being liked
+
+        if (!targetUserId) {
+            res.status(400).json({ message: 'Target user ID is required' });
+            return;
+        }
+
+        // Find the user doing the liking
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if target user exists
+        const targetUser = await User.findById(targetUserId);
+        if (!targetUser) {
+            res.status(404).json({ message: 'Target user not found' });
+            return;
+        }
+
+        // Check if already liked
+        if (user.likedUsers && user.likedUsers.includes(targetUserId)) {
+            res.status(400).json({ message: 'User already liked' });
+            return;
+        }
+
+        // Add targetUserId to likedUsers array
+        await User.findByIdAndUpdate(
+            userId,
+            { $push: { likedUsers: targetUserId } },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'User liked successfully' });
+    } catch (error: any) {
+        console.error('Error in likeUser:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const unlikeUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as Request & { user?: any }).user.id; // ID of user doing the unliking
+        const { targetUserId } = req.body; // ID of user being unliked
+
+        if (!targetUserId) {
+            res.status(400).json({ message: 'Target user ID is required' });
+            return;
+        }
+
+        // Find the user doing the unliking
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if target user exists
+        const targetUser = await User.findById(targetUserId);
+        if (!targetUser) {
+            res.status(404).json({ message: 'Target user not found' });
+            return;
+        }
+
+        // Check if user was liked in the first place
+        if (!user.likedUsers || !user.likedUsers.includes(targetUserId)) {
+            res.status(400).json({ message: 'User was not previously liked' });
+            return;
+        }
+
+        // Remove targetUserId from likedUsers array
+        await User.findByIdAndUpdate(
+            userId,
+            { $pull: { likedUsers: targetUserId } },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'User unliked successfully' });
+    } catch (error: any) {
+        console.error('Error in unlikeUser:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+export const getLikedUsers = async (
+    req: Request & { user?: any }, // Extend Request to include user
+    res: Response
+): Promise<void> => {
+    console.log("HI");
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId).populate('likedUsers');
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        res.status(200).json(user.likedUsers);
+    } catch (error: any) {
+        console.error('Error in getLikedUsers:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+export const getMatches = async (
+    req: Request & { user?: any },
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId)
+            .populate({
+                path: 'likedUsers',
+                match: { likedUsers: userId },
+                select: 'firstName lastName dateOfBirth gender preference.bio' // Select relevant fields
+            });
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res.status(200).json(user.likedUsers);
+    } catch (error: any) {
+        console.error('Error in getMatches:', error);
+        res.status(500).json({ message: error.message });
+    }
+}

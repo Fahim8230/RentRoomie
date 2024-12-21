@@ -24,6 +24,7 @@ export interface IBudgetPreference {
 }
 
 export interface IPreference {
+    bio: string;
     agePreference?: IAgePreference;
     genderPreference?: string[];
     budgetPreference?: IBudgetPreference;
@@ -39,6 +40,7 @@ export interface IUser extends Document {
     gender: string;
     additionalInfo?: IAdditionalInfo; // Optional
     preference?: IPreference; // New preference field
+    likedUsers: mongoose.Types.ObjectId[];
 }
 
 // Existing Schemas
@@ -110,6 +112,10 @@ const preferenceSchema = new mongoose.Schema(
             type: budgetPreferenceSchema,
             required: false,
         },
+        bio: {
+            type: String,
+            required: false,
+        },
     },
     { _id: false }
 );
@@ -154,6 +160,10 @@ const userSchema = new mongoose.Schema(
             type: preferenceSchema,
             required: false, // Optional
         },
+        likedUsers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
     {
         timestamps: true

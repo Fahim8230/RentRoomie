@@ -11,6 +11,10 @@ import {
     getUserProfile,
     updatePreferences,
     updateUser,
+    likeUser,
+    unlikeUser,
+    getLikedUsers,
+    getMatches
 } from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
 
@@ -25,10 +29,14 @@ router.get('/', authMiddleware, getUsers); // Get all users
 router.put('/preferences', authMiddleware, updatePreferences); // Update preferences
 router.get('/preferences', authMiddleware, getPreferences);   // Get preferences
 
+router.get('/getUserProfile/:userId', authMiddleware, getUserProfile);
+router.get('/like', authMiddleware, getLikedUsers);
+router.get('/matches', authMiddleware, getMatches);
+router.put('/like', authMiddleware, likeUser);
+router.delete('/like', authMiddleware, unlikeUser);
 // Dynamic Routes for User by ID - Place these after specific routes
 router.get('/:id', authMiddleware, getUserById); // Get a single user by ID
 router.put('/:id', authMiddleware, updateUser); // Update a user by ID
 router.delete('/:id', authMiddleware, deleteUser); // Delete a user by ID
-router.get('/getUserProfile/:userId', authMiddleware, getUserProfile);
 
 export default router;

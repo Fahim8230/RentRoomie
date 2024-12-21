@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { colors } from '../utils/colors';
 import { fonts } from '../utils/fonts';
@@ -7,6 +7,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import asyncStorage from "@react-native-async-storage/async-storage/src/AsyncStorage";
+import {usePreferences} from "../utils/PreferencesContext";
+import {apiURL} from "../utils/utils";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -15,6 +18,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const { setPreferences, preferences} = usePreferences();
   // Function to handle login
   const handleLogin = async () => {
     try {
@@ -22,12 +26,56 @@ const LoginScreen = () => {
       const payload = { email, password };
   
       // Make the POST request to the backend
-      const response = await axios.post('http://10.0.2.2:5001/api/users/login', payload);
+      const response = await axios.post(apiURL + '/api/users/login', payload);
   
       // Store the JWT token using AsyncStorage
       const { token } = response.data;
       await AsyncStorage.setItem('token', token);
-  
+
+      // //This is sample code for setting & getting prefs
+      // const setPrefs = await axios.put('http://10.0.2.2:5001/api/users/preferences',{
+      //   "agePreference": {
+      //     "minAge": 20,
+      //     "maxAge": 35
+      //   },
+      //   "genderPreference": ["male", "female", "non-binary"],
+      //   "budgetPreference": {
+      //     "low": 500,
+      //     "high": 2000
+      //   }
+      // }, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`
+      //   }
+      // });
+      // console.log(setPrefs.data)
+
+      const preferencesResponse = await axios.get(apiURL + '/api/users/preferences', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!preferencesResponse.data || Object.keys(preferencesResponse.data).length === 0) {
+        const defaultPrefs = {
+          agePreference: {
+            minAge: 18,
+            maxAge: 100
+          },
+          genderPreference: ["male", "female", "non-binary"],
+          budgetPreference: {
+            low: 0,
+            high: 10000
+          },
+          bio: ""
+        };
+        preferencesResponse.data = defaultPrefs;
+      }
+      console.log(preferencesResponse.data);
+      setPreferences(preferencesResponse.data);
+      console.log(preferences);
+      //End of sample code
+
+      await AsyncStorage.setItem('preferences', JSON.stringify(preferencesResponse.data));
       // Navigate to the container screen
       navigation.navigate('CONTAINER');
     } catch (error) {
