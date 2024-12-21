@@ -13,6 +13,7 @@ import {
     getUsersWhoLikedMe,
     likeUser,
     loginUser,
+    removeLike,
     updatePreferences,
     updateUser,
 } from '../controllers/userController';
@@ -37,6 +38,7 @@ router.get('/getUserProfile/:userId', authMiddleware, getUserProfile);
 
 // New route for liking a user
 router.post('/like', authMiddleware, likeUser);
+router.delete('/like', authMiddleware, removeLike);
 router.get('/likes/received', authMiddleware, getUsersWhoLikedMe); // Users who liked you
 router.get('/likes/sent', authMiddleware, getUsersILiked);        // Users you have liked
 router.get('/matches', authMiddleware, getMyMatches);             // Your matches
